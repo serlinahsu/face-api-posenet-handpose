@@ -1,0 +1,67 @@
+//faceApi
+let faceapi;
+let camera;
+let faceMesh = [];
+//poseNet
+let poseNet;
+let poses=[];
+
+function setup() {
+  createCanvas(640, 480);
+  //poseNet
+  poseNet = ml5.poseNet(camera,poseNetLoaded);
+  poseNet.on('pose', gotPoses)
+
+  //faceApi
+  const detectionOptions = {
+    withLandmarks: true,
+    withDescriptors: false,
+  };
+  camera = createCapture(VIDEO);
+  camera.size(640, 480);
+  camera.hide();
+  faceapi = ml5.faceApi(camera, detectionOptions, faceapilLoaded);
+}
+
+function gotPoses(poses){
+  console.log(poses);
+}
+
+function faceapilLoaded() {
+  console.log('Faceapi Ready!');
+  faceapi.detect(gotFace);
+}
+
+function poseNetLoaded() {
+  console.log('poseNet Ready!');
+  //faceapi.detect(gotFace);
+}
+
+function gotFace(err, result) {
+  if (result) {
+  	//faceApi
+    faceMesh = result;
+    //if (faceMesh.length > 0) console.log(result);
+    faceapi.detect(gotFace);
+  }
+}
+
+
+function draw() {
+  background(220);
+  image(camera, 0, 0);
+  fill(255, 0, 0);
+  //faceApi
+  if (faceMesh.length > 0) {
+    let faces = faceMesh.length;
+    for (let j = 0; j < faces; j++) {
+      let length = faceMesh[j].landmarks._positions.length;
+      for (let i = 0; i < length; i++) {
+        let x = faceMesh[j].landmarks._positions[i].x;
+        let y = faceMesh[j].landmarks._positions[i].y;
+        noStroke();
+        circle(x, y, 10);
+      }
+    }
+  }
+}
